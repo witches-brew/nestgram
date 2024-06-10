@@ -36,16 +36,23 @@ export class Webhook {
           req.on('data', (chunk: string): any => (data += chunk));
 
           req.on('end', async (): Promise<any> => {
-            if (req.url === '/health') {
-              res.end('ok');
-              return;
-            }
-
             try {
+              // These endpoints are not designed to be called by Telegram, so
+              // we don't want to guard them with the secret token.
+              if (req.url === '/health') {
+                res.end('ok');
+                return;
+              }
+
+              // Endpoints below this assertion must come from Telegram.
+              if (config.secret_token !== undefined) {
+                assertSecretTokenHeader(req, config.secret_token);
+              }
+
               const update: IUpdate = JSON.parse(data.toString());
               await this.handler.handleUpdate(update);
               res.end('ok');
-            } catch (e: any) {
+            } catch (e: unknown) {
               console.error(e);
             }
           });
@@ -55,4 +62,27 @@ export class Webhook {
       })
       .listen(config.port || 80);
   }
+}
+
+/**
+ * Asserts that `request` has a header "X-Telegram-Bot-Api-Secret-Token" with
+ * value `expectedToken`. `expectedToken` should be the `secret_token` sent to
+ * Telegram when registering this webhook.
+ *
+ * This is a security measure, which ensures that Telegram is making this
+ * request. This makes it impossible for anyone else to make requests to this
+ * service.
+ */
+function assertSecretTokenHeader(request: IncomingMessage, expectedToken: string): void {
+  // NodeJS lowercases header names by default:
+  // https://nodejs.org/api/http.html#messageheaders
+  let header = request.headers['x-telegram-bot-api-secret-token'];
+
+  if (header === undefined) throw new Error('Unauthorized');
+  if (Array.isArray(header)) {
+    if (header.length !== 1) throw new Error('Unauthorized');
+    header = header[0];
+  }
+
+  if (header !== expectedToken) throw new Error('Unauthorized');
 }
