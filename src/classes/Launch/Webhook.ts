@@ -36,6 +36,11 @@ export class Webhook {
           req.on('data', (chunk: string): any => (data += chunk));
 
           req.on('end', async (): Promise<any> => {
+            if (req.url === '/health') {
+              res.end('ok');
+              return;
+            }
+
             try {
               const update: IUpdate = JSON.parse(data.toString());
               await this.handler.handleUpdate(update);
