@@ -53,7 +53,15 @@ export class Webhook {
               await this.handler.handleUpdate(update);
               res.end('ok');
             } catch (e: unknown) {
+              if (e instanceof ForbiddenError) {
+                res.statusCode = e.statusCode;
+                res.end();
+                return;
+              }
               console.error(e);
+
+              res.statusCode = 500;
+              res.end();
             }
           });
         } catch (e: any) {
@@ -78,11 +86,18 @@ function assertSecretTokenHeader(request: IncomingMessage, expectedToken: string
   // https://nodejs.org/api/http.html#messageheaders
   let header = request.headers['x-telegram-bot-api-secret-token'];
 
-  if (header === undefined) throw new Error('Unauthorized');
+  if (header === undefined) throw new ForbiddenError();
   if (Array.isArray(header)) {
-    if (header.length !== 1) throw new Error('Unauthorized');
+    if (header.length !== 1) throw new ForbiddenError();
     header = header[0];
   }
 
-  if (header !== expectedToken) throw new Error('Unauthorized');
+  if (header !== expectedToken) throw new ForbiddenError();
+}
+
+class ForbiddenError extends Error {
+  readonly statusCode = 403;
+  constructor(...args: ConstructorParameters<typeof Error>) {
+    super(...args);
+  }
 }
