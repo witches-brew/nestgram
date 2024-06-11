@@ -9,6 +9,8 @@ export class MediaCache {
   file: editJsonFile.JsonEditor;
 
   constructor() {
+    if (process.env.DISABLE_LOGS) return;
+
     this.getJSONFile();
   }
 
@@ -29,10 +31,14 @@ export class MediaCache {
   }
 
   saveMediaFileId(path: string, fileId: string): void {
+    if (process.env.DISABLE_LOGS) return;
+
     this.file.set(path, fileId);
   }
 
   getMediaFileId(path: string): string | undefined {
+    if (process.env.DISABLE_LOGS) return undefined;
+
     // @ts-ignore
     return this.file.data[path];
   }

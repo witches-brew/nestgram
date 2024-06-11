@@ -7,6 +7,8 @@ export class FileLogger {
   logsFilePath: string = path.resolve(this.nestgramInfoDirPath, 'logs.md');
 
   constructor(private readonly limit: number) {
+    if (process.env.DISABLE_LOGS) return;
+
     this.setupLogsFile();
   }
 
@@ -25,6 +27,8 @@ export class FileLogger {
   }
 
   async saveLog(update: IUpdate): Promise<void> {
+    if (process.env.DISABLE_LOGS) return;
+
     const date: string = new Date().toISOString();
     const oldLogsFileText: string = (await fs.readFile(this.logsFilePath)).toString();
     const updateText = JSON.stringify(update, null, 2);
