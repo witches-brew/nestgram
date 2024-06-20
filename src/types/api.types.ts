@@ -23,7 +23,7 @@ export type ChatActions =
   | 'record_video_note'
   | 'upload_video_note';
 
-export type SendOptions =
+export type SendOptions = (
   | ISendOptions
   | ISendAudioOptions
   | ISendAnimationOptions
@@ -37,7 +37,10 @@ export type SendOptions =
   | ISendVenueOptions
   | ISendVideoOptions
   | ISendVideoNoteOptions
-  | ISendVoiceOptions;
+  | ISendVoiceOptions) & Readonly<{
+  /** Only works for send/edit messages */
+  link_preview_options?: LinkPreviewOptions
+}>
 
 export interface ISendFetchOptions extends ISendOptions {
   chat_id: number | string;
@@ -56,6 +59,15 @@ export interface ISendOptions extends IDefaultOptions {
   parse_mode?: ParseModes;
   entities?: IMessageEntity[];
 }
+
+export interface LinkPreviewOptions {
+  is_disabled?: boolean;
+  url?: boolean;
+  prefer_small_media?: boolean;
+  prefer_large_media?: boolean;
+  show_above_text?: boolean;
+}
+
 
 export interface ISendMediaGroupFetchOptions extends ISendMediaGroupOptions {
   chat_id: number | string;
