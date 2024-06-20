@@ -159,7 +159,7 @@ export class Api {
 
       return data.result;
     } catch (e: any) {
-      throw error(`.callApi error: ${e.response?.data?.description || e}`);
+      throw error(`.callApi error (method: ${method}): ${e.response?.data?.description || e}`);
     }
   }
 
