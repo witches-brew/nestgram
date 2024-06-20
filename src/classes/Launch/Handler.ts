@@ -315,9 +315,17 @@ export class Handler {
             actionToDo();
           }
         } else {
-          const [sendMethodKey, answerCallArgs]: [string, any[]] =
-            Handler.getAnswerInfo(actionToDo);
-          await answer[sendMethodKey](...answerCallArgs);
+          try {
+            const [sendMethodKey, answerCallArgs]: [string, any[]] =
+              Handler.getAnswerInfo(actionToDo);
+            await answer[sendMethodKey](...answerCallArgs);
+          } catch (e: unknown) {
+            if (e instanceof Error) {
+              console.error(e.stack ?? e.message);
+            } else {
+              console.error(JSON.stringify(e));
+            }
+          }
         }
       }
     };

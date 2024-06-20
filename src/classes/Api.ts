@@ -141,6 +141,7 @@ import { BotMenuButton } from '../types/menu-button.types';
 import { Caption } from './Marks';
 import { MarkCreator } from './Marks/MarkCreator';
 import { InviteLink } from './Marks/InviteLink';
+import { Mutable } from '../types/mutable';
 
 export class Api {
   constructor(private readonly token?: string) {}
@@ -159,7 +160,7 @@ export class Api {
 
       return data.result;
     } catch (e: any) {
-      throw error(`.callApi error: ${e.response?.data?.description || e}`);
+      throw error(`.callApi error (method: ${method}): ${e.response?.data?.description || e}`);
     }
   }
 
@@ -309,6 +310,12 @@ export class Api {
     }
 
     if (content instanceof Media) {
+      const options: Mutable<SendOptions> = { ...moreOptions}
+      if (options.link_preview_options) {
+        // Media types don't call the default `sendMessage` endpoint
+        delete options.link_preview_options;
+      }
+
       if (content instanceof Photo) return this.sendPhoto(chatId, content, keyboard, moreOptions);
       else if (content instanceof Animation)
         return this.sendAnimation(chatId, content, keyboard, moreOptions);
