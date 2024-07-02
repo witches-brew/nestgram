@@ -19,6 +19,7 @@ import { Polling } from './classes/Launch/Polling';
 import { Webhook } from './classes/Launch/Webhook';
 import { ScopeController } from './classes/Scope/ScopeController';
 import { scopeStore } from './classes/Scope/ScopeStore';
+import { Handler } from './classes/Launch/Handler';
 
 // clear console
 clear();
@@ -199,13 +200,19 @@ export class NestGram {
 
       // start server and save webhook
       this.webhook = new Webhook(
-        this.token,
-        this.handlers,
+        new Api(this.token),
         this.config,
-        this.runConfig.logging,
-        this.runConfig.fileLogging,
-        this.runConfig.fileLoggingLimit,
+        this.runConfig,
+        new Handler(
+          this.token,
+          this.handlers,
+          this.runConfig.logging,
+          this.runConfig.fileLogging,
+          this.runConfig.fileLoggingLimit,
+        ),
       );
+
+      await this.webhook.start();
     }
 
     // log that bot started
