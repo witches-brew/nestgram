@@ -63,8 +63,9 @@ export class Webhook {
     return this.api
       .getWebhookInfo()
       .then((webhookInfo) => {
-        // An empty webhook URL indicates that the webhook is not registered.
-        if (webhookInfo.url.length !== 0) return;
+        // We only want to re-register the webhook if the URL differs from the
+        // one in our config...
+        if (webhookInfo.url !== this.webhookConfig.url) return;
         if (this.runConfig.logging) info('Re-registering webhook...');
 
         return this.api.setWebhook(this.webhookConfig);
