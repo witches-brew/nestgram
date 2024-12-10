@@ -134,7 +134,7 @@ import { mediaCache } from './Media/MediaCache';
 import { Animation, Media, VideoNote } from './Media';
 import { error } from '../logger';
 
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import * as FormData from 'form-data';
 import * as fs from 'fs';
 import { BotMenuButton } from '../types/menu-button.types';
@@ -159,8 +159,31 @@ export class Api {
       });
 
       return data.result;
-    } catch (e: any) {
-      throw error(`.callApi error (method: ${method}): ${e.response?.data?.description || e}`);
+    } catch (e: unknown) {
+      if (e instanceof AxiosError) {
+        throw error(
+          `.callApi error : ${JSON.stringify({
+            method: 'POST',
+            path: method,
+            request: e.request,
+            status: e.response?.status,
+            body: e.response?.data,
+            responseHeaders: e.response?.headers,
+          })}`,
+        );
+      }
+      if (e instanceof Error) {
+        throw error(
+          `.callApi error : ${JSON.stringify({
+            method: 'POST',
+            path: method,
+            name: e.name,
+            message: e.message,
+            stack: e.stack,
+          })}`,
+        );
+      }
+      throw error(`.callApi error : ${JSON.stringify(e)}`);
     }
   }
 
@@ -310,7 +333,7 @@ export class Api {
     }
 
     if (content instanceof Media) {
-      const options: Mutable<SendOptions> = { ...moreOptions}
+      const options: Mutable<SendOptions> = { ...moreOptions };
       if (options.link_preview_options) {
         // Media types don't call the default `sendMessage` endpoint
         delete options.link_preview_options;
